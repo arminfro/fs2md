@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gem build fs2md && gem install ./fs2md-0.1.0.gem
