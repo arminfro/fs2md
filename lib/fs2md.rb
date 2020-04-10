@@ -20,18 +20,14 @@ module Fs2md
       file = File.expand_path(path)
       return 'not valid path' unless File.exist?(file)
 
-      $beamer = true
-      dd      = DirNode.new(File.basename(file), path)
-      dd.read_tree
-      puts dd
-      # dd.childs.each_with_index { |c, i| puts "[#{i}]: #{c.name}" }
-      # dd.print
+      args      = [File.basename(file), path]
+      root_node = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
+      puts root_node
+      # root_node.childs.each_with_index { |c, i| puts "[#{i}]: #{c.name}" }
       # $beamer = false
-      # dd.print
-      puts ''
+      # root_node.print
+      # $beamer   = false
+      # root_node.print
     end
   end
-
-  class Error < StandardError; end
-  # Your code goes here...
 end

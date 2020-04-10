@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-require 'fs2md'
+require_relative '../lib/fs2md'
 
 begin
   Fs2md::Cli.start

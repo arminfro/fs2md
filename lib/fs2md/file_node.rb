@@ -2,18 +2,16 @@
 
 class FileNode < Node
   def initialize(name, path, parent_node = nil)
-    super
-    file        = File.new(full_path, 'r')
-    @name       = File.basename(file).sub(File.extname(file), '')
-    @text_nodes = read(file)
+    @file       = File.new(File.join(path, name), 'r')
+    @name       = File.basename(@file).sub(File.extname(@file), '')
+    super(path, parent_node)
   end
 
-  def read(file)
-    f_content     = File.read(file).split("\n")
+  def read
+    f_content     = File.read(@file).split("\n")
     io_with_index = with_index(strip_array(f_content))
     io            = io_with_index.map { |a| a[0] }
 
-    text_nodes   = []
     node_indices = io_with_index.map do |l_i|
       l                       = l_i[0]
       i                       = l_i[1]
@@ -69,6 +67,6 @@ class FileNode < Node
   end
 
   def content
-    @text_nodes.map(&:content).join("\n")
+    @childs.map(&:content).join("\n")
   end
 end
