@@ -1,19 +1,43 @@
 # frozen_string_literal: true
 
 class Node
-  attr_reader :parent, :name, :path, :childs
+  attr_reader :parent, :name, :path # , :childs
   def initialize(path, parent = nil)
     @path   = path
     @parent = parent
     @childs = read
   end
 
+  class << self
+    attr_accessor :config
+  end
+  @config = {
+    type_scope: :dir
+  }
+
   def depth
     parents.size
   end
 
-  def to_s
-    "[#{index}]#{'   ' * depth} - #{@name} \n"
+  def to_s(_mode = nil)
+    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.sort_by(&:name).select(&:filter).map(&:to_s).join}"
+  end
+
+  def childs(mode = :flat)
+    begin
+      case mode
+      when :flat then @childs
+      when :all then @childs.map { |c| [c, *c.childs(:all)] }.flatten
+      end
+    end.sort_by(&:name)
+  end
+
+  def filter
+    case Node.config[:type_scope]
+    when :dir; then is_a?(DirNode)
+    when :file; then is_a?(DirNode) || is_a?(FileNode)
+    when :text then true
+    end
   end
 
   def parents

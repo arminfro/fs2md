@@ -35,15 +35,15 @@ class FileNode < Node
       range                   = (i + 1)..node_indices[node_indices.index(i) + 1]
       last                    = range.last == io.size - 1
       content                 = strip_array(io[(starts_without_headline ? range.first - 1 : range.first)..(last ? range.last : range.last - 1)]).join("\n")
-      TextNode.new(headline, content, node_depth, path)
+      TextNode.new(headline, content, node_depth, path, self)
     end
 
     if tt.empty?
-      [TextNode.new(beautify_name, io.join("\n"), depth, path)]
-    elsif beautify_name == tt.first.headline
+      [TextNode.new(beautify_name, io.join("\n"), depth, path, self)]
+    elsif beautify_name == tt.first.name
       tt
     else
-      tt.unshift(TextNode.new(beautify_name, '', depth, path))
+      tt.unshift(TextNode.new(beautify_name, '', depth, path, self))
     end
   end
 

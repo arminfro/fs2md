@@ -25,37 +25,14 @@ class DirNode < Node
     end
   end
 
-  def childs(mode = :flat)
-    begin
-      case mode
-      when :flat then @childs
-      when :all then @childs.map { |c| [c, *c.all_childs] }
-      end
-    end.sort_by(&:name)
-  end
-
   def each(mode = :flat)
     childs(mode).each { |c| yield(c) }
   end
 
-  def files(mode = :flat)
-    childs(mode).select { |c| c.is_a?(FileNode) }.sort_by(&:name)
-  end
-
-  def dirs(mode = :flat)
-    childs(mode).select { |c| c.is_a?(DirNode) }.sort_by(&:name)
-  end
-
-  def to_s
-    super + @childs.sort_by(&:name).map(&:to_s).join
-  end
-
   def print
     output_dir = 'output'
-    # FileUtils.remove_dir(output_dir)
     FileUtils.mkdir(output_dir) unless File.exist?(output_dir)
     to_pdf(output_dir)
-    # childs.each { |c| c.to_pdf(output_dir) }
   end
 
   def size
