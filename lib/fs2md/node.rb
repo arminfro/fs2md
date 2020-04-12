@@ -47,7 +47,8 @@ class Node
   def childs(mode = :flat)
     case mode
     when :flat then @childs
-    when :all then ([self] + @childs.map { |c| c.childs(:all) }).flatten
+    when :all then (@childs.map { |c| c.childs(:all_with_self) }).flatten
+    when :all_with_self then ([self] + @childs.map { |c| c.childs(:all_with_self) }).flatten
     end
   rescue Exception => e
     puts e.message
@@ -124,7 +125,7 @@ class Node
   end
 
   def size
-    childs(:all).size
+    childs(:all_with_self).size
   end
 
   def output_dir

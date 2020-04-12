@@ -48,6 +48,14 @@ module Fs2md
                       required: false
       end
 
+      def print_each_method_option
+        method_option 'print-each',
+                      type: :boolean,
+                      default: false,
+                      desc: 'if true, every dir- and filenode gets printed to pdf',
+                      required: false
+      end
+
       def print_beamer_method_option
         method_option 'print-beamer',
                       type: :boolean,
@@ -72,6 +80,7 @@ module Fs2md
     until_indice_method_option
     from_indice_method_option
     print_beamer_method_option
+    print_each_method_option
     mutated_vowel_transformation_method_option
     def print(path)
       file = File.expand_path(path)
@@ -82,16 +91,21 @@ module Fs2md
       node                                       = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
 
       if options['until-index'] || options[['from-index']]
-        all_nodes   = node.childs(:all)
+        all_nodes   = node.childs(:all_with_self)
         index_range = Cli.indice_options_to_index_range(options, all_nodes.size)
         node        = Node.reroot_by_index_range(index_range, all_nodes)
       end
 
       node.print
+
       if options['print-beamer']
         Node.config[:print_beamer] = true
         node.print
       end
+
+      return unless options['print-each']
+
+      node.childs(:all).reject { |c| c.is_a?(TextNode) }.each(&:print)
     end
 
     desc 'show', 'show file tree with indices'
@@ -107,7 +121,7 @@ module Fs2md
       args = [File.basename(file), path]
       node = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
       puts node
-      puts "[#{node.childs(:all).last.index}] - End"
+      puts "[#{node.childs(:all_with_self).last.index}] - End"
     end
   end
 end
