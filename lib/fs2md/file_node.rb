@@ -23,7 +23,7 @@ class FileNode < Node
     end.compact
 
     tt = node_indices[..-2].map do |i|
-      starts_without_headline = i == 0 && io[i] !~ /\A#/
+      starts_without_headline = i.zero? && io[i] !~ /\A#/
       if starts_without_headline
         headline   = beautify_name
         node_depth = depth
@@ -45,6 +45,7 @@ class FileNode < Node
     else
       tt.unshift(TextNode.new(beautify_name, '', depth, path, self))
     end
+    # todo, sort_by(&:name)
   end
 
   def with_index(io)

@@ -29,9 +29,9 @@ class Node
       node
     end
   end
+
   @config = {
-    type_scope: :text,
-    index_range: nil
+    type_scope: :text
   }
 
   def depth
@@ -39,20 +39,13 @@ class Node
   end
 
   def to_s(_mode = nil)
-    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.sort_by(&:name).select(&:type_filter).map(&:to_s).join}"
+    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.select(&:type_filter).map(&:to_s).join}"
   end
 
   def childs(mode = :flat)
     case mode
     when :flat then @childs
     when :all then ([self] + @childs.map { |c| c.childs(:all) }).flatten
-    end
-  end
-
-  def index_filter
-    case Node.config[:index_range]
-    when nil; then true
-    else Node.config[:index_range].include?(index)
     end
   end
 

@@ -84,22 +84,5 @@ module Fs2md
       puts node
       puts "[#{node.childs(:all).last.index}] - End"
     end
-
-    desc 'original_sequence', 'pass path of documents'
-    def original_sequence(path)
-      file = File.expand_path(path)
-      return 'not valid path' unless File.exist?(file)
-
-      args        = [File.basename(file), path]
-      Node.config = { type_scope: :file }
-      root_node   = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
-      # puts root_node.dirs(:all)
-      puts root_node.to_s
-      # root_node.childs.each_with_index { |c, i| puts "[#{i}]: #{c.name}" }
-      # $beamer = false
-      # root_node.print
-      # $beamer   = false
-      # root_node.print
-    end
   end
 end

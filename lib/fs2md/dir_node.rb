@@ -8,12 +8,14 @@ class DirNode < Node
   end
 
   def read
-    md_files = Dir.glob("#{@path}/*").select do |f|
-      ff = File.new(f)
-      ff && (File.directory?(ff) || (File.file?(ff) && ff.path =~ /.*md\z/))
+    files = Dir.glob("#{@path}/*").select do |f|
+      file             = File.new(f)
+      is_directory     = File.directory?(file)
+      is_markdown_file = File.file?(file) && file.path =~ /.*md\z/
+      file && (is_directory || is_markdown_file)
     end
 
-    md_files.map do |d|
+    files.map do |d|
       is_file   = File.file?(File.new(d))
       node_type = if is_file
                     FileNode
@@ -21,8 +23,8 @@ class DirNode < Node
                     DirNode
                   end
       path_ref  = is_file ? d.split('/')[0..-2].join('/') : d
-      node      = node_type.new(d.split('/').last, path_ref, self)
-    end
+      node_type.new(d.split('/').last, path_ref, self)
+    end.sort_by(&:name)
   end
 
   def each(mode = :flat)
