@@ -65,8 +65,4 @@ class FileNode < Node
     end
     arr[first_line_index..last_line_index]
   end
-
-  def content
-    @childs.map(&:content).join("\n")
-  end
 end

@@ -29,16 +29,6 @@ class DirNode < Node
     childs(mode).each { |c| yield(c) }
   end
 
-  def print
-    output_dir = 'output'
-    FileUtils.mkdir(output_dir) unless File.exist?(output_dir)
-    to_pdf(output_dir)
-  end
-
-  def size
-    childs(:all).size
-  end
-
   def content
     child_content = childs(:flat).map(&:content).join("\n")
     @parent.nil? ? child_content : "#{'#' * ($beamer ? 1 : depth)} #{beautify_name}\n\n#{child_content}"

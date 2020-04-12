@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Node
-  attr_reader :parent, :name, :path # , :childs
+  attr_reader :parent, :name, :path
+  attr_accessor :childs
   def initialize(path, parent = nil)
     @path   = path
     @parent = parent
@@ -10,9 +11,27 @@ class Node
 
   class << self
     attr_accessor :config
+
+    def reroot_by_index_range(index_range, all_nodes)
+      first_node = all_nodes[index_range.first]
+      last_node  = all_nodes[index_range.last]
+      node       = first_node.root? ? first_node : first_node.first_common_parent(last_node)
+
+      node_indices_ignore = (all_nodes.first.index..(first_node.index - 1)).to_a +
+                            ((last_node.index + 1)..all_nodes.last.index).to_a -
+                            [first_node.index, last_node.index, node.index]
+
+      if node_indices_ignore.size.positive?
+        node.childs                                        = [first_node]
+        node_indices_ignore.each { |i| all_nodes[i].childs = [] }
+        node.root!
+      end
+      node
+    end
   end
   @config = {
-    type_scope: :dir
+    type_scope: :text,
+    index_range: nil
   }
 
   def depth
@@ -20,19 +39,38 @@ class Node
   end
 
   def to_s(_mode = nil)
-    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.sort_by(&:name).select(&:filter).map(&:to_s).join}"
+    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.sort_by(&:name).select(&:type_filter).map(&:to_s).join}"
   end
 
   def childs(mode = :flat)
-    begin
-      case mode
-      when :flat then @childs
-      when :all then @childs.map { |c| [c, *c.childs(:all)] }.flatten
-      end
-    end.sort_by(&:name)
+    case mode
+    when :flat then @childs
+    when :all then ([self] + @childs.map { |c| c.childs(:all) }).flatten
+    end
   end
 
-  def filter
+  def index_filter
+    case Node.config[:index_range]
+    when nil; then true
+    else Node.config[:index_range].include?(index)
+    end
+  end
+
+  def first_common_parent(other_node)
+    return self unless parents
+
+    (parents & other_node.parents).max_by(&:index)
+  end
+
+  def root!
+    @parent = nil
+  end
+
+  def root?
+    @parent.nil?
+  end
+
+  def type_filter
     case Node.config[:type_scope]
     when :dir; then is_a?(DirNode)
     when :file; then is_a?(DirNode) || is_a?(FileNode)
@@ -53,47 +91,58 @@ class Node
   end
 
   def siblings(mode = :all)
-    @siblings ||= begin
-                    return [] unless @parent
+    return [] unless @parent || is_a?(TextNode)
 
-                    parent_childs = @parent.childs
-                    case mode
-                    when :all
-                      parent_childs
-                    when :before_self
-                      index_self = parent_childs.index(self)
-                      return [] if index_self < 1
+    parent_childs = @parent.childs
+    case mode
+    when :all
+      parent_childs
+    when :before_self
+      begin
+        index_self = parent_childs.index(self)
+      rescue Exception => e
+        binding.pry
+      end
+      return [] if index_self < 1
 
-                      parent_childs[0..(index_self - 1)]
-                    end
-                  end
+      parent_childs[0..(index_self - 1)]
+    end
   end
 
   def index
-    @index ||= begin
-               return 0 unless @parent
+    return 0 if root?
 
-               (preceding_node&.index || 0) + 1
-             end
+    preceding_node.index + 1
   end
 
   def preceding_node
-    @preceding_node ||= begin
-                        return nil unless @parent
+    last_sibling = siblings(:before_self).last
 
-                        last_sibling = siblings(:before_self).last
+    return @parent if last_sibling.nil?
 
-                        return @parent if last_sibling.nil?
+    last_sibling = last_sibling.childs.last until last_sibling.is_a?(TextNode)
+    last_sibling || @parent
+  end
 
-                        until last_sibling.is_a?(FileNode)
-                          last_sibling = last_sibling.childs.last
-                        end
-                        last_sibling || @parent
-                      end
+  def content
+    @childs.map(&:content).join("\n")
+  end
+
+  def size
+    childs(:all).size
+  end
+
+  def print
+    output_dir = 'output'
+    FileUtils.mkdir(output_dir) unless File.exist?(output_dir)
+    to_pdf(output_dir)
   end
 
   def to_pdf(output_dir)
-    return if content.empty?
+    if content.empty?
+      puts('no content for given node')
+      exit(1)
+    end
 
     d        = is_a?(DirNode)
     outputf  = "#{output_dir}/#{@path.sub("#{Dir.pwd}/", '')}#{d ? '' : '/' + @name}"
