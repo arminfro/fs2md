@@ -20,7 +20,7 @@ module Fs2md
       def type_scope_method_option
         method_option :type,
                       type: :string,
-                      default: 'file',
+                      default: Node.config[:type_scope].to_s,
                       desc: "pass 'dir', 'file' or 'text'",
                       required: false
       end
@@ -42,9 +42,17 @@ module Fs2md
       def mutated_vowel_transformation_method_option
         method_option 'mutated-vowel-transformation',
                       type: :boolean,
-                      default: true,
+                      default: Node.config[:mutated_vowel_transformation],
                       desc: 'determine if spell correction gets applied (with aspell). ' \
                             'It\'s used to transform mutated vowels in German language',
+                      required: false
+      end
+
+      def print_beamer_method_option
+        method_option 'print-beamer',
+                      type: :boolean,
+                      default: Node.config[:print_beamer],
+                      desc: 'determines if a beamer version shall be printed as well',
                       required: false
       end
 
@@ -63,6 +71,7 @@ module Fs2md
     desc 'print', 'converts document tree to pdf'
     until_indice_method_option
     from_indice_method_option
+    print_beamer_method_option
     mutated_vowel_transformation_method_option
     def print(path)
       file = File.expand_path(path)
@@ -71,13 +80,18 @@ module Fs2md
       Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
       args                                       = [File.basename(file), path]
       node                                       = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
+
       if options['until-index'] || options[['from-index']]
         all_nodes   = node.childs(:all)
         index_range = Cli.indice_options_to_index_range(options, all_nodes.size)
         node        = Node.reroot_by_index_range(index_range, all_nodes)
       end
+
       node.print
-      puts 'Successfully printed'
+      if options['print-beamer']
+        Node.config[:print_beamer] = true
+        node.print
+      end
     end
 
     desc 'show', 'show file tree with indices'

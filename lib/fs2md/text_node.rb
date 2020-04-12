@@ -12,9 +12,9 @@ ContentParser = Struct.new(:content, :path) do
           end
           end
         end
-        if is_picture?(word)
-          file_name = string_between_markers(word, '(', ')')
-          word      = word.sub(file_name, "#{path}/#{file_name}")
+        if picture?(word)
+          relative_path_img = string_between_markers(word, '(', ')')
+          word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
         end
         word
       end.join(' ')
@@ -29,8 +29,10 @@ ContentParser = Struct.new(:content, :path) do
     is_link || is_excluded_word || is_correct_word
   end
 
-  def is_picture?(word)
-    return true if word =~ /!\[\].*/
+  # @todo, works only if there is no 'alt text' in image reference
+  #        (otherwise the line to word splitter does wrong)
+  def picture?(word)
+    true if word =~ /!\[\].*/
   end
 
   def exceptions
@@ -43,19 +45,19 @@ ContentParser = Struct.new(:content, :path) do
 end
 
 class TextNode < Node
-  attr_reader :name, :content
+  attr_reader :name # , :content
   def initialize(name, content, depth, path, parent)
     @name    = name
     @parent  = parent
     @content = ContentParser.new(content, path).parse
     @depth   = depth
-    # @childs  = []
+    @childs  = []
   end
 
   def to_s(mode = nil)
     return super() if mode == :just_name
 
-    if $beamer
+    if Node.config[:print_beamer]
       "# #{@name.gsub('#', '')}\n\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
     else
       "#{'#' * @depth}#{@name.include?('#') ? '' : ' '}#{@name}\n\n#{@content}\n"

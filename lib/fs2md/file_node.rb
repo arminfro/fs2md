@@ -48,6 +48,10 @@ class FileNode < Node
     # todo, sort_by(&:name)
   end
 
+  def output_filename
+    File.join(super, @name + (Node.config[:print_beamer] ? '_beamer' : ''))
+  end
+
   def with_index(io)
     side_effect_arr = []
     io.each_with_index { |l, i| side_effect_arr.push([l, i]) }

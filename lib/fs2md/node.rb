@@ -32,6 +32,7 @@ class Node
 
   @config = {
     type_scope: :text,
+    print_beamer: false,
     mutated_vowel_transformation: true
   }
 
@@ -48,6 +49,10 @@ class Node
     when :flat then @childs
     when :all then ([self] + @childs.map { |c| c.childs(:all) }).flatten
     end
+  rescue Exception => e
+    puts e.message
+    puts e.backtrace.inspect
+    binding.pry
   end
 
   def first_common_parent(other_node)
@@ -122,32 +127,33 @@ class Node
     childs(:all).size
   end
 
-  def print
-    output_dir = 'output'
-    FileUtils.mkdir(output_dir) unless File.exist?(output_dir)
-    to_pdf(output_dir)
+  def output_dir
+    'output'
   end
 
-  def to_pdf(output_dir)
+  def output_filename
+    File.join(output_dir, @path)
+  end
+
+  def print
     if content.empty?
-      puts('no content for given node')
-      exit(1)
+      puts("no content for given node: #{@name}")
+      return
     end
 
-    d        = is_a?(DirNode)
-    outputf  = "#{output_dir}/#{@path.sub("#{Dir.pwd}/", '')}#{d ? '' : '/' + @name}"
-    dir      = outputf.split('/')[..-2].join('/')
-    FileUtils.mkdir_p(dir) unless File.exist?(dir)
-    filename = "#{outputf}#{$beamer ? '_beamer' : ''}"
+    filename = output_filename
+    dirname  = File.dirname(filename)
+    FileUtils.mkdir_p(dirname) unless File.exist?(dirname)
 
     File.open("#{filename}.md", 'w') { |f| f.write(content) }
     styles  = %w[pygments kate monochrome espresso haddock tango zenburn]
-    command = "pandoc #{if $beamer
+    command = "pandoc #{if Node.config[:print_beamer]
                           '-t beamer'
                         else
                           '--toc --toc-depth 6 -V toc-title=\'Inhaltsverzeichnis\''
-    end} -V linkcolor:blue --highlight-style #{styles[5]} -s #{filename}.md -o #{filename}.pdf"
+    end} -V linkcolor:blue --highlight-style #{styles[5]} -s '#{filename}.md' -o '#{filename}.pdf'"
     system(command)
+    puts "Printed #{filename}.pdf"
   end
 
   def beautify_name

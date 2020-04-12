@@ -33,6 +33,15 @@ class DirNode < Node
 
   def content
     child_content = childs(:flat).map(&:content).join("\n")
-    @parent.nil? ? child_content : "#{'#' * ($beamer ? 1 : depth)} #{beautify_name}\n\n#{child_content}"
+    if @parent.nil?
+      child_content
+    else
+      headline = "#{'#' * (Node.config[:print_beamer] ? 1 : depth)} #{beautify_name}"
+      "#{headline}\n\n#{child_content}"
+    end
+  end
+
+  def output_filename
+    File.join(super + (Node.config[:print_beamer] ? '_beamer' : ''))
   end
 end
