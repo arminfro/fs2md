@@ -3,6 +3,7 @@
 require 'fs2md/version'
 require 'thor'
 require 'pry'
+require 'spellchecker'
 
 module Warning
   def warn(msg); end
@@ -14,7 +15,6 @@ require 'fs2md/file_node'
 require 'fs2md/text_node'
 
 module Fs2md
-  ORDER = [DirNode, FileNode, TextNode].freeze
   class Cli < Thor
     class << self
       def type_scope_method_option
@@ -39,6 +39,15 @@ module Fs2md
                       required: false
       end
 
+      def mutated_vowel_transformation_method_option
+        method_option 'mutated-vowel-transformation',
+                      type: :boolean,
+                      default: true,
+                      desc: 'determine if spell correction gets applied (with aspell). ' \
+                            'It\'s used to transform mutated vowels in German language',
+                      required: false
+      end
+
       def indice_options_to_index_range(options, node_size)
         index_range = 0..(node_size - 1)
         if options['until-index'] && options['until-index'] <= index_range.last
@@ -54,12 +63,14 @@ module Fs2md
     desc 'print', 'converts document tree to pdf'
     until_indice_method_option
     from_indice_method_option
+    mutated_vowel_transformation_method_option
     def print(path)
       file = File.expand_path(path)
       return 'not valid path' unless File.exist?(file)
 
-      args      = [File.basename(file), path]
-      node      = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
+      Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
+      args                                       = [File.basename(file), path]
+      node                                       = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
       if options['until-index'] || options[['from-index']]
         all_nodes   = node.childs(:all)
         index_range = Cli.indice_options_to_index_range(options, all_nodes.size)

@@ -31,7 +31,8 @@ class Node
   end
 
   @config = {
-    type_scope: :text
+    type_scope: :text,
+    mutated_vowel_transformation: true
   }
 
   def depth
@@ -91,11 +92,7 @@ class Node
     when :all
       parent_childs
     when :before_self
-      begin
-        index_self = parent_childs.index(self)
-      rescue Exception => e
-        binding.pry
-      end
+      index_self = parent_childs.index(self)
       return [] if index_self < 1
 
       parent_childs[0..(index_self - 1)]
