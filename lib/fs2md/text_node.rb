@@ -1,55 +1,11 @@
 # frozen_string_literal: true
 
-ContentParser = Struct.new(:content, :path) do
-  def parse
-    char_map = { ue: 'ü', ae: 'ä', oe: 'ö', Ue: 'Ü', Ae: 'Ä', Oe: 'Ö', ss: 'ß' }
-    content.split("\n").map do |line|
-      line.split(/\s/).map do |word|
-        if Node.config[:mutated_vowel_transformation]
-          word.scan(Regexp.new(char_map.keys.join('|'))) do |match|
-            unless skip_word?(word)
-              word = word.gsub(match.to_s, char_map[match.to_s.to_sym])
-          end
-          end
-        end
-        if picture?(word)
-          relative_path_img = string_between_markers(word, '(', ')')
-          word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
-        end
-        word
-      end.join(' ')
-    end.join("\n")
-  end
-
-  def skip_word?(word)
-    is_excluded_word = exceptions.any? { |p| word.downcase.include?(p) }
-    is_link          = word =~ /\[.*\]\(.*\)/
-    is_correct_word  = Spellchecker.check(word, 'de_DE').first[:correct]
-
-    is_link || is_excluded_word || is_correct_word
-  end
-
-  # @todo, works only if there is no 'alt text' in image reference
-  #        (otherwise the line to word splitter does wrong)
-  def picture?(word)
-    true if word =~ /!\[\].*/
-  end
-
-  def exceptions
-    %w[vue heroes true class klassen assert value myvalue password]
-  end
-
-  def string_between_markers(word, marker1, marker2)
-    word[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
-  end
-end
-
 class TextNode < Node
   attr_reader :name # , :content
   def initialize(name, content, depth, path, parent)
     @name    = name
     @parent  = parent
-    @content = ContentParser.new(content, path).parse
+    @content = TextNodeContentParser.new(content, path).parse
     @depth   = depth
     @childs  = []
   end
@@ -74,5 +30,30 @@ class TextNode < Node
     else
       content
     end
+  end
+end
+
+TextNodeContentParser = Struct.new(:content, :path) do
+  def parse
+    content.split("\n").map do |line|
+      line.split(/\s/).map do |word|
+        word = MutatedVowel.new(word).parse_word
+        if picture?(word)
+          relative_path_img = string_between_markers(word, '(', ')')
+          word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
+        end
+        word
+      end.join(' ')
+    end.join("\n")
+  end
+
+  # @todo, works only if there is no 'alt text' in image reference
+  #        (otherwise the line to word splitter does wrong)
+  def picture?(word)
+    true if word =~ /!\[\].*/
+  end
+
+  def string_between_markers(word, marker1, marker2)
+    word[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
   end
 end

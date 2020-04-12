@@ -2,7 +2,7 @@
 
 class Node
   attr_reader :parent, :name, :path
-  attr_accessor :childs
+  attr_writer :childs
   def initialize(path, parent = nil)
     @path   = path
     @parent = parent
@@ -47,13 +47,9 @@ class Node
   def childs(mode = :flat)
     case mode
     when :flat then @childs
+    when :all_with_self then [self] + childs(:all)
     when :all then (@childs.map { |c| c.childs(:all_with_self) }).flatten
-    when :all_with_self then ([self] + @childs.map { |c| c.childs(:all_with_self) }).flatten
     end
-  rescue Exception => e
-    puts e.message
-    puts e.backtrace.inspect
-    binding.pry
   end
 
   def first_common_parent(other_node)

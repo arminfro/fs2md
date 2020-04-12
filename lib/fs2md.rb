@@ -13,6 +13,7 @@ require 'fs2md/node'
 require 'fs2md/dir_node'
 require 'fs2md/file_node'
 require 'fs2md/text_node'
+require 'fs2md/mutated_vowel'
 
 module Fs2md
   class Cli < Thor
