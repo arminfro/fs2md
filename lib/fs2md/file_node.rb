@@ -64,9 +64,7 @@ class FileNode < Node
     last_line_index  = nil
     arr.each_with_index do |el, i|
       first_line_index = i if !el.empty? && first_line_index.nil?
-      if (arr[i + 1].nil? || arr.size - 1 == i) && !el.empty?
-        last_line_index = i
-      end
+      last_line_index  = i if (arr[i + 1].nil? || arr.size - 1 == i) && !el.empty?
     end
     arr[first_line_index..last_line_index]
   end

@@ -28,29 +28,29 @@ class TextNode < Node
       content
     end
   end
-end
 
-TextNodeContentParser = Struct.new(:content, :path) do
-  def parse
-    content.split("\n").map do |line|
-      line.split(/\s/).map do |word|
-        word = MutatedVowel.new(word).parse_word
-        if picture?(word)
-          relative_path_img = string_between_markers(word, '(', ')')
-          word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
-        end
-        word
-      end.join(' ')
-    end.join("\n")
-  end
+  TextNodeContentParser = Struct.new(:content, :path) do
+    def parse
+      content.split("\n").map do |line|
+        line.split(/\s/).map do |word|
+          word = MutatedVowel.new(word).parse_word
+          if picture?(word)
+            relative_path_img = string_between_markers(word, '(', ')')
+            word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
+          end
+          word
+        end.join(' ')
+      end.join("\n")
+    end
 
-  # @todo, works only if there is no 'alt text' in image reference
-  #        (otherwise the line to word splitter does wrong)
-  def picture?(word)
-    true if word =~ /!\[\].*/
-  end
+    # @todo, works only if there is no 'alt text' in image reference
+    #        (otherwise the line to word splitter does wrong)
+    def picture?(word)
+      true if word =~ /!\[\].*/
+    end
 
-  def string_between_markers(word, marker1, marker2)
-    word[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
+    def string_between_markers(word, marker1, marker2)
+      word[/#{Regexp.escape(marker1)}(.*?)#{Regexp.escape(marker2)}/m, 1]
+    end
   end
 end
