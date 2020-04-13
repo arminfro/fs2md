@@ -2,9 +2,9 @@
 
 class FileNode < Node
   def initialize(name, path, parent_node = nil)
-    @file       = File.new(File.join(path, name), 'r')
-    @name       = File.basename(@file).sub(File.extname(@file), '')
-    super(path, parent_node)
+    @file = File.new(File.join(path, name), 'r')
+    name  = File.basename(@file).sub(File.extname(@file), '')
+    super(path, name, parent_node)
   end
 
   def read
@@ -25,7 +25,7 @@ class FileNode < Node
     tt = node_indices[..-2].map do |i|
       starts_without_headline = i.zero? && io[i] !~ /\A#/
       if starts_without_headline
-        headline   = beautify_name
+        headline   = name(:beautiful)
         node_depth = depth
       else
         count      = io[i].count('#')
@@ -39,11 +39,11 @@ class FileNode < Node
     end
 
     if tt.empty?
-      [TextNode.new(beautify_name, io.join("\n"), depth, path, self)]
-    elsif beautify_name == tt.first.name
+      [TextNode.new(name(:beautiful), io.join("\n"), depth, path, self)]
+    elsif name(:beautiful) == tt.first.name
       tt
     else
-      tt.unshift(TextNode.new(beautify_name, '', depth, path, self))
+      tt.unshift(TextNode.new(name(:beautiful), '', depth, path, self))
     end
     # todo, sort_by(&:name)
   end

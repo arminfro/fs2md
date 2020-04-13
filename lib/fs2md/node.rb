@@ -3,14 +3,19 @@
 class Node
   attr_reader :parent, :name, :path
   attr_writer :childs
-  def initialize(path, parent = nil)
+  def initialize(path, name, parent = nil)
     @path   = path
+    @name   = Node.mutated_vowel_transformation(name)
     @parent = parent
     @childs = read
   end
 
   class << self
     attr_accessor :config
+
+    def mutated_vowel_transformation(string)
+      string.split(' ').map { |n| MutatedVowel.new(n).parse_word }.join(' ')
+    end
 
     def reroot_by_index_range(index_range, all_nodes)
       first_node = all_nodes[index_range.first]
@@ -40,8 +45,13 @@ class Node
     parents.size
   end
 
-  def to_s(_mode = nil)
-    "[#{index}]#{'   ' * depth} - #{@name} \n#{childs.select(&:type_filter).map(&:to_s).join}"
+  def to_s
+    "[#{index}][#{self.class.to_s[0]}]#{'   ' * depth} - #{name(:beautiful)}\n"\
+    "#{childs.select(&:type_filter).map(&:to_s).join}"
+  end
+
+  def content
+    @childs.map(&:content).join("\n")
   end
 
   def childs(mode = :flat)
@@ -116,10 +126,6 @@ class Node
     last_sibling || @parent
   end
 
-  def content
-    @childs.map(&:content).join("\n")
-  end
-
   def size
     childs(:all_with_self).size
   end
@@ -153,7 +159,10 @@ class Node
     puts "Printed #{filename}.pdf"
   end
 
-  def beautify_name
-    @name.sub(/\d{1,3}/, '').gsub('_', ' ').strip
+  def name(mode = nil)
+    case mode
+    when :beautiful; then @name.sub(/\d{1,3}/, '').gsub('_', ' ').strip
+    else @name
+    end
   end
 end

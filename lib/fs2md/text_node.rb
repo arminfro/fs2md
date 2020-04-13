@@ -1,25 +1,22 @@
 # frozen_string_literal: true
 
 class TextNode < Node
-  attr_reader :name # , :content
+  attr_reader :depth
   def initialize(name, content, depth, path, parent)
-    @name    = name
+    @name    = Node.mutated_vowel_transformation(name.gsub('#', ''))
+    @depth   = depth + name.count('#')
     @parent  = parent
     @content = TextNodeContentParser.new(content, path).parse
-    @depth   = depth
     @childs  = []
   end
 
-  def to_s(mode = nil)
-    return super() if mode == :just_name
-
+  def content
     if Node.config[:print_beamer]
-      "# #{@name.gsub('#', '')}\n\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
+      "# #{@name}\n\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
     else
-      "#{'#' * @depth}#{@name.include?('#') ? '' : ' '}#{@name}\n\n#{@content}\n"
+      "#{'#' * depth} #{@name}\n\n#{@content}\n"
     end
   end
-  alias content to_s
 
   private
 

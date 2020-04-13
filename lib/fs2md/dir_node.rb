@@ -3,8 +3,7 @@
 class DirNode < Node
   include Enumerable
   def initialize(name, path, parent_node = nil)
-    @name = name
-    super(path, parent_node)
+    super(path, name, parent_node)
   end
 
   def read
@@ -32,11 +31,11 @@ class DirNode < Node
   end
 
   def content
-    child_content = childs(:flat).map(&:content).join("\n")
+    child_content = super
     if @parent.nil?
       child_content
     else
-      headline = "#{'#' * (Node.config[:print_beamer] ? 1 : depth)} #{beautify_name}"
+      headline = "#{'#' * (Node.config[:print_beamer] ? 1 : depth)} #{name(:beautiful)}"
       "#{headline}\n\n#{child_content}"
     end
   end

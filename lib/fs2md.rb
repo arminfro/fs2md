@@ -122,7 +122,6 @@ module Fs2md
       args = [File.basename(file), path]
       node = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
       puts node
-      puts "[#{node.childs(:all_with_self).last.index}] - End"
     end
   end
 end
