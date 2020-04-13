@@ -32,15 +32,29 @@ class TextNode < Node
   TextNodeContentParser = Struct.new(:content, :path) do
     def parse
       content.split("\n").map do |line|
-        line.split(/\s/).map do |word|
-          word = MutatedVowel.new(word).parse_word
-          if picture?(word)
-            relative_path_img = string_between_markers(word, '(', ')')
-            word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
-          end
-          word
-        end.join(' ')
+        if transform_line?(line)
+          line
+        else
+          line.split(/\s/).map do |word|
+            word = MutatedVowel.new(word).parse_word
+            if picture?(word)
+              relative_path_img = string_between_markers(word, '(', ')')
+              word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
+            end
+            word
+          end.join(' ')
+        end
       end.join("\n")
+    end
+
+    def transform_line?(line)
+      splitted_content = content.split("\n")
+      index            = splitted_content.index(line)
+      is_in_code_block = false
+      splitted_content[0..index].each do |e_line|
+        is_in_code_block = !is_in_code_block if e_line =~ /\A```/
+      end
+      is_in_code_block
     end
 
     # @todo, works only if there is no 'alt text' in image reference
