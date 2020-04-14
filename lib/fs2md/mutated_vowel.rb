@@ -8,7 +8,7 @@ MutatedVowel = Struct.new(:word) do
   }.freeze
 
   EXCEPTIONS = %w[
-    vue heroes true class klassen assert value myvalue password
+    vue heroes expressions
   ].freeze
 
   def parse_word

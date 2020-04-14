@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Node
-  attr_reader :parent, :name, :path
+  attr_reader :parent, :path
   attr_writer :childs
   def initialize(path, name, parent = nil)
     @path   = path
@@ -38,7 +38,8 @@ class Node
   @config = {
     type_scope: :text,
     print_beamer: false,
-    mutated_vowel_transformation: true
+    mutated_vowel_transformation: true,
+    pandoc: {}
   }
 
   def depth
@@ -138,7 +139,7 @@ class Node
     File.join(output_dir, @path)
   end
 
-  def print
+  def generate_md
     if content.empty?
       puts("no content for given node: #{@name}")
       return
@@ -149,14 +150,18 @@ class Node
     FileUtils.mkdir_p(dirname) unless File.exist?(dirname)
 
     File.open("#{filename}.md", 'w') { |f| f.write(content) }
-    styles  = %w[pygments kate monochrome espresso haddock tango zenburn]
-    command = "pandoc #{if Node.config[:print_beamer]
-                          '-t beamer'
-                        else
-                          '--toc --toc-depth 6 -V toc-title=\'Inhaltsverzeichnis\''
-    end} -V linkcolor:blue --highlight-style #{styles[5]} -s '#{filename}.md' -o '#{filename}.pdf'"
-    system(command)
-    puts "Printed #{filename}.pdf"
+
+    call_pandoc(filename) if Node.config[:pandoc]
+
+    puts "Printed #{filename}.md #{'and corresponding pandoc file' if Node.config[:pandoc]}"
+  end
+
+  def call_pandoc(filename)
+    opts   = Node.config[:pandoc]['options']
+    format = Node.config[:pandoc]['format']
+    beamer = '-t beamer' if Node.config[:print_beamer]
+
+    system("pandoc #{beamer} #{opts} -s '#{filename}.md' -o '#{filename}.#{format}'")
   end
 
   def name(mode = nil)

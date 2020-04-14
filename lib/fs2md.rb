@@ -65,6 +65,23 @@ module Fs2md
                       required: false
       end
 
+      def pandoc_method_option
+        method_option 'pandoc',
+                      type: :hash,
+                      default: Node.config[:pandoc],
+                      required: false,
+                      desc: <<~DESC
+                        If you wish to use pandoc to compile your markdown files as well.
+
+                        Pass at least a value for format, like `--pandoc=format:"pdf"`
+                        Note: Format is used to specify output filename, pandoc implies the --to option
+
+                        You can also pass other pandoc arguments, in options key, like:
+                        `fs2md print MyFolder --pandoc=options:"--toc -V linkcolor:blue --highlight-style tango" format:"pdf"`
+
+                      DESC
+      end
+
       def indice_options_to_index_range(options, node_size)
         index_range = 0..(node_size - 1)
         if options['until-index'] && options['until-index'] <= index_range.last
@@ -77,11 +94,12 @@ module Fs2md
       end
     end
 
-    desc 'print', 'converts document tree to pdf'
+    desc 'print', 'converts document tree to md'
     until_indice_method_option
     from_indice_method_option
     print_beamer_method_option
     print_each_method_option
+    pandoc_method_option
     mutated_vowel_transformation_method_option
     def print(path)
       file = File.expand_path(path)
@@ -97,16 +115,18 @@ module Fs2md
         node        = Node.reroot_by_index_range(index_range, all_nodes)
       end
 
-      node.print
+      Node.config[:pandoc] = options[:pandoc] if options['pandoc'].keys.size.positive?
+
+      node.generate_md
 
       if options['print-beamer']
         Node.config[:print_beamer] = true
-        node.print
+        node.generate_md
       end
 
       return unless options['print-each']
 
-      node.childs(:all).reject { |c| c.is_a?(TextNode) }.each(&:print)
+      node.childs(:all).reject { |c| c.is_a?(TextNode) }.each(&:generate_md)
     end
 
     desc 'show', 'show file tree with indices'
