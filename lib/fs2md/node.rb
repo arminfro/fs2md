@@ -123,7 +123,7 @@ class Node
 
     return @parent if last_sibling.nil?
 
-    last_sibling = last_sibling.childs.last until last_sibling.is_a?(TextNode)
+    last_sibling = last_sibling.childs.last until last_sibling.is_a?(TextNode) || last_sibling.childs.empty?
     last_sibling || @parent
   end
 

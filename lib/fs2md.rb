@@ -2,18 +2,17 @@
 
 require 'fs2md/version'
 require 'thor'
-require 'pry'
 require 'spellchecker'
 
-module Warning
-  def warn(msg); end
-end
-
+begin
+  require 'pry'
+rescue LoadError; end
 require 'fs2md/node'
 require 'fs2md/dir_node'
 require 'fs2md/file_node'
 require 'fs2md/text_node'
 require 'fs2md/mutated_vowel'
+require 'fs2md/file_node_content_parser'
 
 module Fs2md
   class Cli < Thor
