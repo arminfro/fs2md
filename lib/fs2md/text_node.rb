@@ -11,28 +11,33 @@ class TextNode < Node
   end
 
   def content
-    head = begin
-             if @name.empty?
-               ''
-             else
-               Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}"
-             end
-           end
+    content_body.empty? ? '' : "#{headline}\n#{content_body}\n"
+  end
+
+  def content_body
     if Node.config[:print_beamer]
-      "#{head}\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
+      @content.split("\n").map(&:reduce_hash_chars).join("\n")
     else
-      "#{head}\n\n#{@content}\n"
+      @content
+    end
+  end
+
+  def headline
+    if @name.empty?
+      ''
+    else
+      Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}"
     end
   end
 
   private
 
-  def sub_beginning_hash_char(content)
-    if content =~ /\A#+/
-      m = content.match(/\A#+/)
+  def reduce_hash_chars
+    if @content =~ /\A#+/
+      m = @content.match(/\A#+/)
       "##{m.post_match}"
     else
-      content
+      @content
     end
   end
 
