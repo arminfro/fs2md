@@ -7,11 +7,15 @@ class Node
     @path   = path
     @name   = Node.mutated_vowel_transformation(name)
     @parent = parent
-    @childs = read
+    @childs = read || []
+
+    Node.childs_to_remove.push(self) unless childs(:all).any? { |c| c.is_a?(TextNode) }
+    Node.childs_to_remove.map(&:remove_self_from_tree) if root?
   end
 
   class << self
     attr_accessor :config
+    attr_accessor :childs_to_remove
 
     def mutated_vowel_transformation(string)
       string.split(' ').map { |n| MutatedVowel.new(n).parse_word }.join(' ')
@@ -34,6 +38,8 @@ class Node
       node
     end
   end
+
+  @childs_to_remove = []
 
   @config = {
     type_scope: :text,
@@ -131,6 +137,10 @@ class Node
     childs(:all_with_self).size
   end
 
+  def remove_self_from_tree
+    @parent.childs = @parent.childs - [self]
+  end
+
   def output_dir
     'output'
   end
@@ -150,10 +160,10 @@ class Node
     FileUtils.mkdir_p(dirname) unless File.exist?(dirname)
 
     File.open("#{filename}.md", 'w') { |f| f.write(content) }
+    shall_print_pandoc = Node.config[:pandoc].keys.size.positive?
+    call_pandoc(filename) if shall_print_pandoc
 
-    call_pandoc(filename) if Node.config[:pandoc]
-
-    puts "Printed #{filename}.md #{'and corresponding pandoc file' if Node.config[:pandoc]}"
+    puts "Printed #{filename}.md #{'and corresponding pandoc file' if shall_print_pandoc}"
   end
 
   def call_pandoc(filename)
