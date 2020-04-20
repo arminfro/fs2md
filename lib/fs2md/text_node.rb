@@ -4,17 +4,24 @@ class TextNode < Node
   attr_reader :depth
   def initialize(name, content, depth, path, parent)
     @name    = Node.mutated_vowel_transformation(name.gsub('#', ''))
-    @depth   = depth + name.count('#')
+    @depth   = depth + (@name.empty? ? 0 : name.count('#'))
     @parent  = parent
     @content = TextNodeContentParser.new(content, path).parse
     @childs  = []
   end
 
   def content
+    head = begin
+             if @name.empty?
+               ''
+             else
+               Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}"
+             end
+           end
     if Node.config[:print_beamer]
-      "# #{@name}\n\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
+      "#{head}\n#{@content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")}\n"
     else
-      "#{'#' * depth} #{@name}\n\n#{@content}\n"
+      "#{head}\n\n#{@content}\n"
     end
   end
 
