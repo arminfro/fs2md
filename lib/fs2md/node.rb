@@ -161,14 +161,15 @@ class Node
 
     File.open("#{filename}.md", 'w') { |f| f.write(content) }
     shall_print_pandoc = Node.config[:pandoc].keys.size.positive?
-    call_pandoc(filename) if shall_print_pandoc
+    if shall_print_pandoc
+      Node.config[:pandoc]['format'].split(',').each { |format| call_pandoc(filename, format.strip) }
+    end
 
     puts "Printed #{filename}.md #{'and corresponding pandoc file' if shall_print_pandoc}"
   end
 
-  def call_pandoc(filename)
+  def call_pandoc(filename, format)
     opts   = Node.config[:pandoc]['options']
-    format = Node.config[:pandoc]['format']
     beamer = '-t beamer' if Node.config[:print_beamer]
 
     system("pandoc #{beamer} #{opts} -s '#{filename}.md' -o '#{filename}.#{format}'")

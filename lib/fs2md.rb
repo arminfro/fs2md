@@ -73,7 +73,8 @@ module Fs2md
                         If you wish to use pandoc to compile your markdown files as well.
 
                         Pass at least a value for format, like `--pandoc=format:"pdf"`
-                        Note: Format is used to specify output filename, pandoc implies the --to option
+                        Note: Format is used to specify output filename, pandoc implies the --to option.
+                              Could be also comma-seperated list of formats, like `--pandoc=format:"pdf,html"`
 
                         You can also pass other pandoc arguments, in options key, like:
                         `fs2md print MyFolder --pandoc=options:"--toc -V linkcolor:blue --highlight-style tango" format:"pdf"`
@@ -112,7 +113,7 @@ module Fs2md
     def print(path_arg)
       path = Cli.parse_path(path_arg)
       file = File.expand_path(path)
-      return 'not valid path' unless File.exist?(file)
+      return puts('not valid path') unless File.exist?(file)
 
       Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
       args                                       = [File.basename(file), path]
@@ -143,7 +144,7 @@ module Fs2md
     def show(path_arg)
       path = Cli.parse_path(path_arg)
       file = File.expand_path(path)
-      return 'not valid path' unless File.exist?(file)
+      return puts('not valid path') unless File.exist?(file)
 
       if options[:type] && %w[dir file text].include?(options[:type])
         Node.config[:type_scope] = options[:type].to_sym
