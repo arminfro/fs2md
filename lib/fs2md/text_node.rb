@@ -6,7 +6,7 @@ class TextNode < Node
     @name    = Node.mutated_vowel_transformation(name.gsub('#', ''))
     @depth   = depth + (@name.empty? ? 0 : name.count('#'))
     @parent  = parent
-    @content = TextNodeContentParser.new(content, path).parse
+    @content = TextNodeContentParser.new(content.split("\n"), path).parse
     @childs  = []
   end
 
@@ -16,7 +16,7 @@ class TextNode < Node
 
   def content_body
     if Node.config[:print_beamer]
-      @content.split("\n").map(&:reduce_hash_chars).join("\n")
+      @content.split("\n").map { |c| sub_beginning_hash_char(c) }.join("\n")
     else
       @content
     end
@@ -26,24 +26,24 @@ class TextNode < Node
     if @name.empty?
       ''
     else
-      Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}"
+      Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}\n"
     end
   end
 
   private
 
-  def reduce_hash_chars
-    if @content =~ /\A#+/
-      m = @content.match(/\A#+/)
+  def sub_beginning_hash_char(content)
+    if content =~ /\A#+/
+      m = content.match(/\A#+/)
       "##{m.post_match}"
     else
-      @content
+      content
     end
   end
 
-  TextNodeContentParser = Struct.new(:content, :path) do
+  TextNodeContentParser = Struct.new(:splitted_content, :path) do
     def parse
-      content.split("\n").map do |line|
+      splitted_content.map do |line|
         if transform_line?(line)
           line
         else
@@ -60,7 +60,6 @@ class TextNode < Node
     end
 
     def transform_line?(line)
-      splitted_content = content.split("\n")
       index            = splitted_content.index(line)
       is_in_code_block = false
       splitted_content[0..index].each do |e_line|
