@@ -91,6 +91,15 @@ module Fs2md
         end
         index_range
       end
+
+      def parse_path(path)
+        pathname = Pathname.new(path)
+        if pathname.relative?
+          pathname.to_s
+        else
+          pathname.relative_path_from(ENV['PWD']).to_s
+        end
+      end
     end
 
     desc 'print', 'converts document tree to md'
@@ -100,7 +109,8 @@ module Fs2md
     print_each_method_option
     pandoc_method_option
     mutated_vowel_transformation_method_option
-    def print(path)
+    def print(path_arg)
+      path = Cli.parse_path(path_arg)
       file = File.expand_path(path)
       return 'not valid path' unless File.exist?(file)
 
@@ -114,7 +124,7 @@ module Fs2md
         node        = Node.reroot_by_index_range(index_range, all_nodes)
       end
 
-      Node.config[:pandoc] = options[:pandoc] if options['pandoc'].keys.size.positive?
+      Node.config[:pandoc] = options[:pandoc] if options[:pandoc].keys.size.positive?
 
       node.generate_md
 
@@ -130,7 +140,8 @@ module Fs2md
 
     desc 'show', 'show file tree with indices'
     type_scope_method_option
-    def show(path)
+    def show(path_arg)
+      path = Cli.parse_path(path_arg)
       file = File.expand_path(path)
       return 'not valid path' unless File.exist?(file)
 
