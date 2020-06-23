@@ -31,8 +31,7 @@ class Node
                             [first_node.index, last_node.index, node.index]
 
       if node_indices_ignore.size.positive?
-        node.childs                                        = [first_node]
-        node_indices_ignore.each { |i| all_nodes[i].childs = [] }
+        node_indices_ignore.each { |i| all_nodes[i].remove_self_from_tree }
         node.root!
       end
       node
