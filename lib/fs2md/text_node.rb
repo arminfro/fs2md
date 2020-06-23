@@ -44,14 +44,26 @@ class TextNode < Node
   TextNodeContentParser = Struct.new(:splitted_content, :path) do
     def parse
       splitted_content.map do |line|
+        if line =~ /\s{6,}\*\s/
+          puts "Warning: found too much indentation at line #{line.strip}. It'll get autocorrected"
+          line = line[(line.length - 6)..]
+        end
         if transform_line?(line)
           line
         else
-          line.split(/\s/).map do |word|
-            word = MutatedVowel.new(word).parse_word
+          words          = line.split(/\s/)
+          is_inline_code = false
+          words.map do |word|
+            is_inline_code      = true if word =~ /\A`.*/
+            skip_vowel_mutation = word =~ /\A`.*`\z/ || is_inline_code
+            word                = skip_vowel_mutation ? word : MutatedVowel.new(word).parse_word
+            is_inline_code      = false if word =~ /.*`\z/
             if picture?(word)
               relative_path_img = string_between_markers(word, '(', ')')
-              word              = word.sub(relative_path_img, File.join(Dir.pwd, path, relative_path_img))
+              word              = word.sub(
+                relative_path_img,
+                File.join(Dir.pwd, path, relative_path_img)
+              )
             end
             word
           end.join(' ')
