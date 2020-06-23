@@ -43,7 +43,8 @@ class Node
   @config = {
     type_scope: :text,
     print_beamer: false,
-    mutated_vowel_transformation: true,
+    mutated_vowel_transformation: false,
+    mutated_vowel_excludes: [],
     pandoc: {}
   }
 

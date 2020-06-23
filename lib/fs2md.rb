@@ -44,7 +44,16 @@ module Fs2md
                       type: :boolean,
                       default: Node.config[:mutated_vowel_transformation],
                       desc: 'determine if spell correction gets applied (with aspell). ' \
-                            'It\'s used to transform mutated vowels in German language',
+                            'It\'s used to transform mutated vowels in German language' \
+                            'Pass a mutated vowel expception list to exclude specific words from mutation',
+                      required: false
+      end
+
+      def mutated_vowel_excludes_option
+        method_option 'mutated-vowel-excludes',
+                      type: :array,
+                      default: Node.config[:mutated_vowel_excludes],
+                      desc: 'Pass a list of words which gets excluded by mutated vowel transformation',
                       required: false
       end
 
@@ -103,19 +112,21 @@ module Fs2md
       end
     end
 
-    desc 'print', 'converts document tree to md'
+    desc 'print PATH [options]', 'converts document tree to md'
     until_indice_method_option
     from_indice_method_option
     print_beamer_method_option
     print_each_method_option
     pandoc_method_option
     mutated_vowel_transformation_method_option
+    mutated_vowel_excludes_option
     def print(path_arg)
       path = Cli.parse_path(path_arg)
       file = File.expand_path(path)
       return puts('not valid path') unless File.exist?(file)
 
       Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
+      Node.config[:mutated_vowel_excludes]       = options['mutated-vowel-excludes']
       args                                       = [File.basename(file), path]
       node                                       = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
 

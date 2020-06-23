@@ -7,10 +7,6 @@ MutatedVowel = Struct.new(:word) do
     ss: 'ß'
   }.freeze
 
-  EXCEPTIONS = %w[
-    vue heroes expressions
-  ].freeze
-
   def parse_word
     return word unless Node.config[:mutated_vowel_transformation]
 
@@ -20,7 +16,7 @@ MutatedVowel = Struct.new(:word) do
   end
 
   def skip_word?
-    is_excluded_word = EXCEPTIONS.any? { |p| word.downcase.include?(p) }
+    is_excluded_word = Node.config[:mutated_vowel_excludes].any? { |p| word.downcase.include?(p) }
     is_link          = word =~ /\[.*\]\(.*\)/
     is_correct_word  = Spellchecker.check(word, 'de_DE').first[:correct]
 
