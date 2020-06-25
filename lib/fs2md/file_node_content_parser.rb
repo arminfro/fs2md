@@ -12,6 +12,8 @@ FileNodeContentParser = Struct.new(:content, :path, :name, :depth, :file_node) d
     end
   end
 
+  private
+
   def text_node_indices
     content.each_with_index.map do |line, index|
       last_ele                = index == content.size - 1
@@ -27,18 +29,34 @@ FileNodeContentParser = Struct.new(:content, :path, :name, :depth, :file_node) d
 
   def node_indices_to_text_node_arr(indices)
     indices[..-2].map do |index|
-      starts_without_headline = index.zero? && content[index] !~ /\A#/
-      if starts_without_headline
-        headline   = name
-        node_depth = depth
-      else
-        headline   = content[index].sub('#', '').strip
-        node_depth = depth + 1
-      end
-      range                   = (index + 1)..indices[indices.index(index) + 1]
-      last                    = range.last == content.size - 1
-      text_content            = content[(starts_without_headline ? range.first - 1 : range.first)..(last ? range.last : range.last - 1)].join("\n")
-      TextNode.new(headline, text_content, node_depth, path, file_node)
+      t_h_d = text_head_depth_by_index(index, indices)
+      TextNode.new(t_h_d[:headline], t_h_d[:content], t_h_d[:depth], path, file_node)
     end
+  end
+
+  def text_head_depth_by_index(index, indices)
+    starts_without_headline = index.zero? && content[index] !~ /\A#/
+    headline, depth         = headline_and_depth_by_index(index, starts_without_headline)
+    content                 = content_by_index(index, starts_without_headline, indices)
+    { content: content, headline: headline, depth: depth }
+  end
+
+  def headline_and_depth_by_index(index, starts_without_headline)
+    if starts_without_headline
+      headline = name
+      l_depth  = depth
+    else
+      headline = content[index].sub('#', '').strip
+      l_depth  = depth + 1
+    end
+    [headline, l_depth]
+  end
+
+  def content_by_index(index, starts_without_headline, indices)
+    range                   = (index + 1)..indices[indices.index(index) + 1]
+    last                    = range.last == content.size - 1
+    c_begin                 = starts_without_headline ? range.first - 1 : range.first
+    c_end                   = last ? range.last : range.last - 1
+    content[c_begin..c_end].join("\n")
   end
 end
