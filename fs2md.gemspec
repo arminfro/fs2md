@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Armin Fröhlich']
   spec.email         = ['mail@arminfroehlich.de']
 
-  spec.summary               = 'Write a short summary, because RubyGems requires one.'
-  spec.description           = 'Write a longer description or delete this line.'
-  spec.homepage              = 'https://www.git.arminfroehlich.de/armin/fs2md'
+  spec.summary               = "It's a file-collector and -generator for Markdown files"
+  spec.description           = 'It parses a directory recursive and collects all Markdown Files to generate a single Markdown file'
+  spec.homepage              = 'https://www.github.com/arminfro/fs2md'
   spec.license               = 'MIT'
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3.0')
 
