@@ -36,7 +36,7 @@ If wished it calls pandoc to print several formats, specific ranges, each node a
 ## Installation
 
 ```shell
-$ gem install fs2md
+git clone https://github.com/arminfro/fs2md.git && cd fs2md && gem build fs2md.gemspec && gem install ./fs2md-0.1.0.gem
 ```
 
 ### Requirements
