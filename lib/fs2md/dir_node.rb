@@ -2,18 +2,24 @@
 
 class DirNode < Node
   include Enumerable
-  def initialize(name, path, parent_node = nil)
-    super(path, name, parent_node)
+  def initialize(path, parent_node = nil)
+    super(path, parent_node)
   end
 
   def read
-    files = Dir.glob("#{@path}/*").select do |f|
+    map_files(read_files(Dir.glob("#{@path}/*")))
+  end
+
+  def read_files(files)
+    files.select do |f|
       file             = File.new(f)
       is_directory     = File.directory?(file)
       is_markdown_file = File.file?(file) && file.path =~ /.*md\z/
       file && (is_directory || is_markdown_file)
     end
+  end
 
+  def map_files(files)
     files.map do |d|
       is_file   = File.file?(File.new(d))
       node_type = if is_file
@@ -21,8 +27,7 @@ class DirNode < Node
                   else
                     DirNode
                   end
-      path_ref  = is_file ? d.split('/')[0..-2].join('/') : d
-      node_type.new(d.split('/').last, path_ref, self)
+      node_type.new(d, self)
     end.sort_by(&:name)
   end
 
@@ -38,9 +43,5 @@ class DirNode < Node
       headline = "#{'#' * (Node.config[:print_beamer] ? 1 : depth)} #{name(:beautiful)}"
       "#{headline}\n\n#{child_content}"
     end
-  end
-
-  def output_filename
-    File.join(super + (Node.config[:print_beamer] ? '_beamer' : ''))
   end
 end

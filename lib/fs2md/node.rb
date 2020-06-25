@@ -3,9 +3,9 @@
 class Node
   attr_reader :parent, :path
   attr_writer :childs
-  def initialize(path, name, parent = nil)
+  def initialize(path, parent = nil)
     @path   = path
-    @name   = Node.mutated_vowel_transformation(name)
+    @name   = Node.mutated_vowel_transformation(File.basename(path).sub(File.extname(path), ''))
     @parent = parent
     @childs = read || []
 
@@ -129,7 +129,10 @@ class Node
 
     return @parent if last_sibling.nil?
 
-    last_sibling = last_sibling.childs.last until last_sibling.is_a?(TextNode) || last_sibling.childs.empty?
+    until last_sibling.is_a?(TextNode) || last_sibling.childs.empty?
+      last_sibling = last_sibling.childs.last
+    end
+
     last_sibling || @parent
   end
 
@@ -142,30 +145,27 @@ class Node
   end
 
   def output_dir
-    'output'
+    File.join("#{@path}_out")
   end
 
-  def output_filename
-    File.join(output_dir, @path)
+  def output_file
+    File.join(output_dir, @name + (Node.config[:print_beamer] ? '_beamer' : ''))
   end
 
   def generate_md
-    if content.empty?
-      puts("no content for given node: #{@name}")
-      return
-    end
+    return puts("no content for given node: #{@name}") if content.empty?
 
-    filename = output_filename
-    dirname  = File.dirname(filename)
-    FileUtils.mkdir_p(dirname) unless File.exist?(dirname)
+    FileUtils.mkdir_p(output_dir) unless File.exist?(output_dir)
 
-    File.open("#{filename}.md", 'w') { |f| f.write(content) }
+    File.open("#{output_file}.md", 'w') { |f| f.write(content) }
     shall_print_pandoc = Node.config[:pandoc].keys.size.positive?
     if shall_print_pandoc
-      Node.config[:pandoc]['format'].split(',').each { |format| call_pandoc(filename, format.strip) }
+      Node.config[:pandoc]['format']
+          .split(',')
+          .each { |format| call_pandoc(output_file, format.strip) }
     end
 
-    puts "Printed #{filename}.md #{'and corresponding pandoc file' if shall_print_pandoc}"
+    puts "Printed #{output_file}.md #{'and corresponding pandoc file' if shall_print_pandoc}"
   end
 
   def call_pandoc(filename, format)

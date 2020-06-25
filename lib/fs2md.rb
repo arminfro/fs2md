@@ -103,11 +103,14 @@ module Fs2md
       end
 
       def parse_path(path)
-        pathname = Pathname.new(path)
-        if pathname.relative?
-          pathname.to_s
+        File.expand_path(path)
+      end
+
+      def print(node)
+        if options['print-each']
+          node.childs(:all).reject { |c| c.is_a?(TextNode) }.each(&:generate_md)
         else
-          pathname.relative_path_from(ENV['PWD']).to_s
+          node.generate_md
         end
       end
     end
@@ -125,10 +128,14 @@ module Fs2md
       file = File.expand_path(path)
       return puts('not valid path') unless File.exist?(file)
 
-      Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
-      Node.config[:mutated_vowel_excludes]       = options['mutated-vowel-excludes']
-      args                                       = [File.basename(file), path]
-      node                                       = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
+      if options['mutated-vowel-transformation']
+        Node.config[:mutated_vowel_transformation] = options['mutated-vowel-transformation']
+      end
+      if options['mutated-vowel-excludes']
+        Node.config[:mutated_vowel_excludes]       = options['mutated-vowel-excludes']
+      end
+
+      node = File.directory?(path) ? DirNode.new(path) : FileNode.new(path)
 
       if options['until-index'] || options[['from-index']]
         all_nodes   = node.childs(:all_with_self)
@@ -138,16 +145,11 @@ module Fs2md
 
       Node.config[:pandoc] = options[:pandoc] if options[:pandoc].keys.size.positive?
 
-      node.generate_md
+      Cli.print(node)
 
-      if options['print-beamer']
-        Node.config[:print_beamer] = true
-        node.generate_md
-      end
-
-      return unless options['print-each']
-
-      node.childs(:all).reject { |c| c.is_a?(TextNode) }.each(&:generate_md)
+      return unless options['print-beamer']
+      Node.config[:print_beamer] = true
+      Cli.print(node)
     end
 
     desc 'show', 'show file tree with indices'
@@ -161,8 +163,7 @@ module Fs2md
         Node.config[:type_scope] = options[:type].to_sym
       end
 
-      args = [File.basename(file), path]
-      node = File.directory?(path) ? DirNode.new(*args) : FileNode.new(*args)
+      node = File.directory?(path) ? DirNode.new(path) : FileNode.new(path)
       puts node
     end
   end
