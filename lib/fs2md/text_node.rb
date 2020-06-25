@@ -62,7 +62,7 @@ class TextNode < Node
               relative_path_img = string_between_markers(word, '(', ')')
               word              = word.sub(
                 relative_path_img,
-                File.join(Dir.pwd, path, relative_path_img)
+                File.join(Pathname.new(path).split[0], relative_path_img)
               )
             end
             word
