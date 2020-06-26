@@ -88,7 +88,6 @@ module Fs2md
 
                         You can also pass other pandoc arguments, in options key, like:
                         `fs2md print MyFolder --pandoc=options:"--toc -V linkcolor:blue --highlight-style tango" format:"pdf"`
-
                       DESC
       end
 

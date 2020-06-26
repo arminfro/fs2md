@@ -53,7 +53,8 @@ class Node
   end
 
   def to_s
-    "[#{index}][#{self.class.to_s[0]}]#{'   ' * depth} - #{name(:beautiful)}\n"\
+    name = "- #{name(:beautiful)}".strip
+    "[#{index}][#{self.class.to_s[0]}]#{'   ' * depth} #{name}\n"\
     "#{childs.select(&:type_filter).map(&:to_s).join}"
   end
 
