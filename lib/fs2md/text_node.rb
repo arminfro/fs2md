@@ -3,8 +3,8 @@
 class TextNode < Node
   attr_reader :depth
   def initialize(name, content, depth, path, parent)
-    @name    = Node.mutated_vowel_transformation(name.gsub('#', ''))
-    @depth   = depth + (@name.empty? ? 0 : name.count('#'))
+    @name    = Node.mutated_vowel_transformation(name.sub('#', ''))
+    @depth   = depth + calc_depth(name)
     @parent  = parent
     @content = TextNodeContentParser.new(content.split("\n"), path).parse
     @childs  = []
@@ -12,6 +12,15 @@ class TextNode < Node
 
   def content
     content_body.empty? ? '' : "#{headline}\n#{content_body}\n"
+  end
+
+  def calc_depth(name)
+    scan_result = name.scan(/\A#./)
+    if @name.empty? || scan_result.empty?
+      0
+    else
+      scan_result.first.count('#')
+    end
   end
 
   def content_body
