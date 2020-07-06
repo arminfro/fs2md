@@ -98,8 +98,9 @@ converts document tree to md
 
 ### Caveats, Todos
 
-* Can't handle Picture captions currently, works only if the caption is empty
+* Alpha state
 * Requirements could be optional, but they aren't yet
+* It's assumed you use two spaces for indentation
 * Pictures should be placed in the same directory where they are used in your md file, picture path is relative
   * todo, relativ path
   * means you need to reference your pictures just by filename (no path required)

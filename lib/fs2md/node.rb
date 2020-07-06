@@ -170,8 +170,8 @@ class Node
   end
 
   def call_pandoc(filename, format)
-    opts   = Node.config[:pandoc]['options']
-    beamer = '-t beamer' if Node.config[:print_beamer]
+    opts   = Node.config[:pandoc]['options'] || ''
+    beamer = Node.config[:print_beamer] ? '-t beamer' : ''
 
     system("pandoc #{beamer} #{opts} -s '#{filename}.md' -o '#{filename}.#{format}'")
   end

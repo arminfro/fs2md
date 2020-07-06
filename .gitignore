@@ -103,3 +103,7 @@ tags
 .vim
 
 # End of https://www.gitignore.io/api/ruby,vim,nvim,gem
+
+.pry_history
+.vimrc.local
+spec/test_set_out

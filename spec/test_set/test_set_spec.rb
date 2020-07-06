@@ -39,7 +39,7 @@ RSpec.describe Fs2md do
 
     it 'should print test_set to specific string' do
       cli         = Fs2md::Cli.new
-      cli.options = { pandoc: {}, 'mutated-vowel-transformation' => true }
+      cli.options = { pandoc: { 'format' => 'pdf'}, 'mutated-vowel-transformation' => true }
       cli.print(File.join(File.expand_path('.'), 'spec', 'test_set'))
       outputs     = <<~EOF
         # Documents
@@ -82,9 +82,7 @@ RSpec.describe Fs2md do
 
         ## picture path
 
-        Test about picture path. It's just a filename. After processing it's a path.
-
-        ![](#{Dir.pwd}/spec/test_set/Documents/bla.png)
+        Test about picture path. ![my image alt text](#{Dir.pwd}/spec/test_set/Documents/ruby.png "opt title"). It's just a filename. After processing it's a path.
       EOF
       expect(File.read("#{ENV['PWD']}/spec/test_set_out/test_set.md")).to(eql(outputs))
     end

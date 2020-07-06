@@ -26,7 +26,7 @@ class TextNode < Node
     if @name.empty?
       ''
     else
-      Node.config[:print_beamer] ? "# #{@name}\n" : "#{'#' * depth} #{@name}\n"
+      Node.config[:print_beamer] ? "# #{@name} {.allowframebreaks}\n" : "#{'#' * depth} #{@name}\n"
     end
   end
 

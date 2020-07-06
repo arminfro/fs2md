@@ -22,7 +22,7 @@ module Fs2md
         method_option :type,
                       type: :string,
                       default: Node.config[:type_scope].to_s,
-                      desc: "pass 'dir', 'file' or 'text'",
+                      desc: "pass 'dir', 'file' or 'text'. lower node type includes higher node types",
                       required: false
       end
 
