@@ -82,7 +82,7 @@ RSpec.describe Fs2md do
 
         ## picture path
 
-        Test about picture path. ![my image alt text](#{Dir.pwd}/spec/test_set/Documents/ruby.png "opt title"). It's just a filename. After processing it's a path.
+        Test about picture path. ![my image alt text](#{Dir.pwd}/spec/test_set/ruby.png "opt title"). It's just a filename. After processing it's a path.
       EOF
       expect(File.read("#{ENV['PWD']}/spec/test_set_out/test_set.md")).to(eql(outputs))
     end

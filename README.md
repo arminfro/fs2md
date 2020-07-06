@@ -4,7 +4,7 @@ It's a file-collector and -generator for Markdown files.
 
 It parses a directory recursive and collects all Markdown Files to generate a single Markdown file.
 
-If wished it calls pandoc to print several formats, specific ranges, each node and a beamer version, for all at once.
+If wished it calls pandoc to print several formats, specific ranges, each node and a beamer version.
 
 ## Features
 
@@ -101,9 +101,11 @@ converts document tree to md
 * Alpha state
 * Requirements could be optional, but they aren't yet
 * It's assumed you use two spaces for indentation
-* Pictures should be placed in the same directory where they are used in your md file, picture path is relative
-  * todo, relativ path
-  * means you need to reference your pictures just by filename (no path required)
+* Pictures should be referenced from the point of the Markdown file
+  * picture path is relative
+  * you can reference pictures by just the filename
+    * if they are in the same directory as the parsed md file
+  * you can use `./` or `../` to reference your picture
 
 ## Development
 

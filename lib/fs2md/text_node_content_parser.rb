@@ -36,7 +36,7 @@ TextNodeContentParser = Struct.new(:splitted_content, :path) do
     relative_path_img = string_between_markers(string, '(', ')')
     string.sub(
       relative_path_img,
-      File.join(Pathname.new(path).split[0], relative_path_img)
+      File.expand_path(relative_path_img, Pathname.new(path).split[0])
     )
   end
 
